@@ -12,15 +12,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-[#1f108e] text-white border-[#1f108e] hover:bg-[#2b1ca0]',
+    'border-[#1f108e] bg-[#1f108e] text-white hover:bg-[#2b1ca0] dark:border-[#4f46e5] dark:bg-[#4f46e5] dark:hover:bg-[#4338ca]',
   secondary:
-    'bg-white text-[#1b1b22] border-[#c8c4d5] hover:bg-[#f6f2fc]',
+    'border-[#c8c4d5] bg-white text-[#1b1b22] hover:bg-[#f6f2fc] dark:border-[#2e2a3d] dark:bg-[#1a1826] dark:text-[#e8e4f0] dark:hover:bg-[#252235]',
   danger:
-    'bg-[#fff0f0] text-[#b42318] border-[#fecaca] hover:bg-[#b42318] hover:text-white',
+    'border-[#fecaca] bg-[#fff0f0] text-[#b42318] hover:bg-[#b42318] hover:text-white dark:border-[#7f1d1d] dark:bg-[#2d1313] dark:text-[#f87171] dark:hover:bg-[#ef4444] dark:hover:text-white',
   ghost:
-    'bg-transparent text-[#464553] border-transparent hover:bg-[#f6f2fc] hover:text-[#1b1b22]',
+    'border-transparent bg-transparent text-[#464553] hover:bg-[#f6f2fc] hover:text-[#1b1b22] dark:text-[#9490a8] dark:hover:bg-[#252235] dark:hover:text-[#e8e4f0]',
   outline:
-    'bg-transparent text-[#1f108e] border-[#c8c4d5] hover:bg-[#f6f2fc] hover:border-[#1f108e]',
+    'border-[#c8c4d5] bg-transparent text-[#1f108e] hover:border-[#1f108e] hover:bg-[#f6f2fc] dark:border-[#2e2a3d] dark:text-[#a78bfa] dark:hover:border-[#7c6ff5] dark:hover:bg-[#252235]',
 };
 
 const sizes: Record<string, string> = {

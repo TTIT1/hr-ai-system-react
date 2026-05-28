@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import type { ApiResponse } from '../types/common.type';
 import type { TokenResponse } from '../types/auth.type';
 import { useAuthStore } from '../store/authStore';
@@ -42,6 +43,10 @@ apiClient.interceptors.response.use(
         useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       }
+    }
+
+    if (error.response?.status === 403) {
+      toast.error('Bạn không có quyền thực hiện thao tác này');
     }
 
     return Promise.reject(error);

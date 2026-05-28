@@ -1,6 +1,7 @@
 import { apiClient, responseData } from './http';
 import type { ApiResponse } from '../types/common.type';
 import type { ChangePasswordRequest, LoginRequest, LoginResponse, TokenResponse, UserInfoResponse } from '../types/auth.type';
+import type { Role } from '../types/common.type';
 
 export const authApi = {
   async login(payload: LoginRequest) {
@@ -20,5 +21,14 @@ export const authApi = {
   },
   async logoutAll() {
     return responseData<null>(await apiClient.post<ApiResponse<null>>('/auth/logout-all'));
+  },
+  async updateUserRole(userId: string, role: Role) {
+    return responseData<null>(await apiClient.put<ApiResponse<null>>(`/auth/users/${userId}/role`, { role }));
+  },
+  async getUserByEmployeeId(employeeId: string) {
+    return responseData<UserInfoResponse>(await apiClient.get<ApiResponse<UserInfoResponse>>(`/auth/users/by-employee/${employeeId}/role`));
+  },
+  async updateUserRoleByEmployeeId(employeeId: string, role: Role) {
+    return responseData<null>(await apiClient.put<ApiResponse<null>>(`/auth/users/by-employee/${employeeId}/role`, { role }));
   },
 };

@@ -1,4 +1,4 @@
-import type { PageResponse, Status } from './common.type';
+import type { PageResponse, Role, Status } from './common.type';
 
 export interface Employee {
   id: string;
@@ -77,6 +77,7 @@ export interface EmployeeCreateRequest {
   education_level?: string;
   degree_year?: number | string;
   other_it_certificate?: string;
+  role?: Role;
 }
 
 export interface EmployeeUpdateRequest {
@@ -114,6 +115,7 @@ export interface EmployeeUpdateRequest {
   education_level?: string;
   degree_year?: number | string;
   other_it_certificate?: string;
+  role?: Role;
 }
 
 export interface EmployeeFilters {

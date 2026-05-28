@@ -8,10 +8,11 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  size?: 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const sizeMap = {
+  sm: 'max-w-md',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
@@ -36,7 +37,7 @@ export function Modal({ isOpen, title, onClose, children, size = 'lg' }: ModalPr
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-canvas/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#1b1b22]/45 backdrop-blur-sm dark:bg-[#050711]/80"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -51,18 +52,18 @@ export function Modal({ isOpen, title, onClose, children, size = 'lg' }: ModalPr
               aria-modal="true"
               tabIndex={-1}
               onKeyDown={(event) => event.key === 'Escape' && onClose()}
-              className={`relative max-h-[90vh] w-full ${sizeMap[size]} overflow-auto rounded-2xl border border-border bg-surface shadow-panel outline-none`}
+              className={`relative max-h-[90vh] w-full ${sizeMap[size]} overflow-auto rounded-2xl border border-[#c8c4d5] bg-white shadow-xl shadow-[#1f108e]/10 outline-none dark:border-[#2e2a3d] dark:bg-[#13111f] dark:shadow-panel`}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
             >
               {/* Top gradient accent */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/50 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#1f108e]/45 to-transparent dark:via-[#7c6ff5]/55" />
 
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                <h2 className="text-base font-semibold text-ink">{title}</h2>
+              <div className="flex items-center justify-between border-b border-[#e4e1eb] px-6 py-4 dark:border-[#2e2a3d]">
+                <h2 className="text-base font-semibold text-[#1b1b22] dark:text-[#e8e4f0]">{title}</h2>
                 <Button
                   type="button"
                   variant="ghost"

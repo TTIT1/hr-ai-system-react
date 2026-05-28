@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from '../../context/LanguageContext';
 
 export interface Column<T> {
   header: string;
@@ -17,8 +18,11 @@ function DataTableBase<T extends object>({
   data,
   columns,
   keyField,
-  emptyText = 'No records found',
+  emptyText,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
+  const resolvedEmptyText = emptyText || t('common.noRecords');
+
   return (
     <div className="overflow-x-auto rounded-lg border border-[#c8c4d5] bg-white">
       <table className="min-w-full divide-y divide-[#c8c4d5] text-sm">
@@ -40,7 +44,7 @@ function DataTableBase<T extends object>({
               <td className="px-4 py-10 text-center text-sm text-[#6d6b7e]" colSpan={columns.length}>
                 <div className="flex flex-col items-center gap-2">
                   <div className="h-8 w-8 rounded-full border border-[#c8c4d5] bg-[#f6f2fc]" />
-                  <span>{emptyText}</span>
+                  <span>{resolvedEmptyText}</span>
                 </div>
               </td>
             </tr>

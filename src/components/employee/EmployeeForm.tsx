@@ -1,21 +1,41 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../common/Button';
 import { SelectField, TextField } from '../common/FormField';
 import { Tabs, TabList, Tab, TabPanel } from '../common/Tabs';
 import { useEmployees } from '../../hooks/useEmployee';
 import type { Department, Employee, EmployeeCreateRequest } from '../../types/employee.type';
 import { AlertCircle } from 'lucide-react';
+import { useUserRoleByEmployee } from '../../hooks/useUserRole';
+import { useTranslation } from '../../context/LanguageContext';
+import { useAuth } from '../../hooks/useAuth';
+import type { Role } from '../../types/common.type';
 
 interface EmployeeFormProps {
   departments: Department[];
   employee?: Employee | null;
   onSubmit: (payload: EmployeeCreateRequest) => void;
+  onCancel?: () => void;
   loading?: boolean;
 }
 
-export function EmployeeForm({ departments, employee, onSubmit, loading }: EmployeeFormProps) {
+export function EmployeeForm({ departments, employee, onSubmit, onCancel, loading }: EmployeeFormProps) {
+  const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
+
   // Query danh sách nhân viên đang làm việc để làm danh sách chọn quản lý
   const { data: employeesData } = useEmployees({ status: 'ACTIVE', size: 1000 });
+
+  // Query thông tin vai trò người dùng (User Account) nếu đang chỉnh sửa nhân viên
+  const { data: userRoleData } = useUserRoleByEmployee(employee?.id);
+  const [role, setRole] = useState<Role>('EMPLOYEE');
+
+  const canManageRole = currentUser?.role === 'ADMIN' || currentUser?.role === 'HR';
+
+  useEffect(() => {
+    if (userRoleData?.role) {
+      setRole(userRoleData.role);
+    }
+  }, [userRoleData]);
 
   const [form, setForm] = useState<EmployeeCreateRequest>({
     idemployee: employee?.idemployee || '',
@@ -101,6 +121,7 @@ export function EmployeeForm({ departments, employee, onSubmit, loading }: Emplo
             ...form,
             degree_year: form.degree_year ? Number(form.degree_year) : undefined,
             resignation_date: form.resignation_date || null,
+            role: role,
           };
           onSubmit(payload);
         }
@@ -128,6 +149,11 @@ export function EmployeeForm({ departments, employee, onSubmit, loading }: Emplo
               {hasContactErrors && <AlertCircle className="h-4 w-4 text-red-500 fill-red-500/10" />}
             </span>
           </Tab>
+          {canManageRole && (
+            <Tab id="role">
+              Tài khoản & Phân quyền
+            </Tab>
+          )}
         </TabList>
 
         {/* Tab 1: Thông tin cơ bản */}
@@ -386,10 +412,66 @@ export function EmployeeForm({ departments, employee, onSubmit, loading }: Emplo
             />
           </div>
         </TabPanel>
+
+        {/* Tab 6: Phân quyền tài khoản */}
+        {canManageRole && (
+          <TabPanel id="role">
+            <div className="rounded-xl border border-[#c8c4d5] bg-[#fdfcff] p-5 dark:border-[#2e2a3d] dark:bg-[#161424] space-y-4">
+              <div className="flex flex-col gap-1 border-b border-[#e4e1eb] pb-3 dark:border-[#2e2a3d]">
+                <h3 className="text-lg font-bold text-[#1b1b22] dark:text-[#e8e4f0]">
+                  {t('modules.userRolesTitle') || 'Phân quyền tài khoản'}
+                </h3>
+                <p className="text-xs text-[#58566a] dark:text-[#9490a8]">
+                  {t('modules.userRolesDesc') || 'Quản lý tài khoản đăng nhập và quyền truy cập hệ thống của nhân viên.'}
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextField
+                  label="Email đăng nhập"
+                  value={form.email || ''}
+                  disabled
+                  helperText="Tài khoản đăng nhập hệ thống được liên kết qua Email công ty."
+                />
+                
+                <SelectField
+                  label={t('modules.role') || 'Vai trò hệ thống'}
+                  value={role}
+                  onChange={(event) => setRole(event.target.value as Role)}
+                >
+                  <option value="EMPLOYEE">Nhân viên (EMPLOYEE)</option>
+                  <option value="MANAGER">Quản lý (MANAGER)</option>
+                  <option value="HR">Nhân sự (HR)</option>
+                  <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                </SelectField>
+              </div>
+
+              {employee && userRoleData && (
+                <div className="mt-4 grid gap-3 text-xs bg-[#f4f1fa] dark:bg-[#1e1c2e] p-3 rounded-lg text-[#58566a] dark:text-[#9490a8]">
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Mã tài khoản (User ID):</span>
+                    <span className="font-mono">{userRoleData.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Trạng thái hoạt động:</span>
+                    <span className={userRoleData.isActive ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'}>
+                      {userRoleData.isActive ? 'Đang hoạt động' : 'Bị khóa'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabPanel>
+        )}
       </Tabs>
 
       {/* Nút hành động */}
-      <div className="flex gap-3 justify-end border-t border-border pt-4 mt-2">
+      <div className="mt-2 flex justify-end gap-3 border-t border-[#e4e1eb] pt-4 dark:border-[#2e2a3d]">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} className="px-6 py-2.5">
+            Hủy bỏ
+          </Button>
+        )}
         <Button type="submit" loading={loading} className="px-8 py-2.5 shadow-lg shadow-[#1f108e]/20">
           {employee ? 'Lưu thay đổi' : 'Thêm mới nhân viên'}
         </Button>

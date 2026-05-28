@@ -4,7 +4,7 @@ import { leaveApi } from '../api/leave.api';
 import type { LeaveRequestCreate } from '../types/leave.type';
 import { getErrorMessage } from '../utils/errors';
 
-export function useLeave(employeeId?: string | null, year = new Date().getFullYear()) {
+export function useLeave(employeeId?: string | null, year = new Date().getFullYear(), canManage = false) {
   return {
     balance: useQuery({
       queryKey: ['leave', 'balance', employeeId, year],
@@ -19,6 +19,7 @@ export function useLeave(employeeId?: string | null, year = new Date().getFullYe
     all: useQuery({
       queryKey: ['leave', 'all'],
       queryFn: leaveApi.all,
+      enabled: canManage,
     }),
   };
 }

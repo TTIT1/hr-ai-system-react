@@ -3,7 +3,7 @@ import { Button } from '../common/Button';
 import { SelectField, TextField } from '../common/FormField';
 import type { Department, DepartmentCreateRequest } from '../../types/employee.type';
 
-export function DepartmentForm({ departments, onSubmit, loading }: { departments: Department[]; onSubmit: (payload: DepartmentCreateRequest) => void; loading?: boolean }) {
+export function DepartmentForm({ departments, onSubmit, onCancel, loading }: { departments: Department[]; onSubmit: (payload: DepartmentCreateRequest) => void; onCancel?: () => void; loading?: boolean }) {
   const [form, setForm] = useState<DepartmentCreateRequest>({ name: '', parent_id: '', manager_id: '' });
   const [error, setError] = useState('');
 
@@ -28,8 +28,15 @@ export function DepartmentForm({ departments, onSubmit, loading }: { departments
         ))}
       </SelectField>
       <TextField label="Mã quản lý (Manager ID)" value={form.manager_id || ''} onChange={(event) => setForm((prev) => ({ ...prev, manager_id: event.target.value }))} placeholder="VD: NV002" />
-      <div className="md:col-span-3">
-        <Button type="submit" loading={loading} className="w-full">Tạo phòng ban</Button>
+      <div className="mt-2 flex justify-end gap-3 border-t border-[#e4e1eb] pt-4 dark:border-[#2e2a3d] md:col-span-3">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} className="px-6 py-2.5">
+            Hủy bỏ
+          </Button>
+        )}
+        <Button type="submit" loading={loading} className="px-8 py-2.5 shadow-lg shadow-[#1f108e]/20">
+          Tạo phòng ban
+        </Button>
       </div>
     </form>
   );

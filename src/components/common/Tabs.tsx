@@ -22,7 +22,7 @@ export function Tabs({
 
 export function TabList({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap gap-1 rounded-xl border border-border bg-surface-2 p-1">
+    <div className="mb-5 flex flex-wrap gap-1 rounded-xl border border-[#c8c4d5] bg-[#f6f2fc] p-1 dark:border-[#2e2a3d] dark:bg-[#1a1826]">
       {children}
     </div>
   );
@@ -38,14 +38,16 @@ export function Tab({ id, children }: { id: string; children: React.ReactNode })
     <button
       type="button"
       className={`relative rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-        isActive ? 'text-ink' : 'text-muted hover:text-ink-2'
+        isActive
+          ? 'text-[#1b1b22] dark:text-[#e8e4f0]'
+          : 'text-[#58566a] hover:text-[#1b1b22] dark:text-[#9490a8] dark:hover:text-[#e8e4f0]'
       }`}
       onClick={() => context.setActiveTab(id)}
     >
       {isActive && (
         <motion.div
           layoutId="tab-indicator"
-          className="absolute inset-0 rounded-lg bg-surface-3 shadow-sm"
+          className="absolute inset-0 rounded-lg bg-white shadow-sm dark:bg-[#252235]"
           transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
         />
       )}

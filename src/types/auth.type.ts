@@ -8,6 +8,9 @@ export interface LoginRequest {
 export interface LoginUserInfo {
   id: string;
   employeeId: string | null;
+  employeeid?: string | null;
+  employee_id?: string | null;
+  idemployee?: string | null;
   email: string;
   fullName: string | null;
   role: Role;
@@ -29,6 +32,9 @@ export interface TokenResponse {
 export interface UserInfoResponse {
   id: string;
   employeeId: string | null;
+  employeeid?: string | null;
+  employee_id?: string | null;
+  idemployee?: string | null;
   email: string;
   fullName: string | null;
   role: Role;

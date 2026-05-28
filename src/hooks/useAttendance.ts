@@ -49,13 +49,14 @@ export function useAttendanceActions() {
 }
 
 // React Query hooks for HR / Admin Excel attendance management
-export function useExcelAttendance(year: number, month: number) {
+export function useExcelAttendance(year: number, month: number, enabled = true) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['attendance-excel'] });
 
   const summaryQuery = useQuery({
     queryKey: ['attendance-excel', 'summary', year, month],
     queryFn: () => attendanceApi.getSummary(year, month),
+    enabled,
   });
 
   const calculateMutation = useMutation({

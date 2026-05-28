@@ -4,13 +4,13 @@ import { recruitmentApi } from '../api/recruitment.api';
 import type { CreateJobRequest, Job, UploadCvParams } from '../types/recruitment.type';
 import { getErrorMessage } from '../utils/errors';
 
-export function useRecruitment(jobId?: string | null) {
+export function useRecruitment(jobId?: string | null, canManagePipeline = false) {
   return {
     jobs: useQuery({ queryKey: ['recruitment', 'jobs'], queryFn: recruitmentApi.jobs }),
     pipeline: useQuery({
       queryKey: ['recruitment', 'pipeline', jobId],
       queryFn: () => recruitmentApi.pipeline(jobId as string),
-      enabled: Boolean(jobId),
+      enabled: Boolean(jobId) && canManagePipeline,
     }),
   };
 }

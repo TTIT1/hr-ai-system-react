@@ -4,7 +4,7 @@ import { performanceApi } from '../api/performance.api';
 import type { KpiCreateRequest } from '../types/performance.type';
 import { getErrorMessage } from '../utils/errors';
 
-export function usePerformance(employeeId?: string | null) {
+export function usePerformance(employeeId?: string | null, canViewTeam = false) {
   return {
     kpis: useQuery({
       queryKey: ['performance', 'kpis', employeeId],
@@ -19,6 +19,7 @@ export function usePerformance(employeeId?: string | null) {
     dashboard: useQuery({
       queryKey: ['performance', 'dashboard'],
       queryFn: performanceApi.dashboard,
+      enabled: canViewTeam,
     }),
   };
 }

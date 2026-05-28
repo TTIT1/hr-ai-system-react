@@ -11,7 +11,6 @@ import { SelectField } from '../components/common/FormField';
 import {
   Upload,
   FileSpreadsheet,
-  Download,
   Search,
   Calendar,
   AlertCircle,
@@ -19,16 +18,18 @@ import {
   UserCheck,
   CheckCircle,
 } from 'lucide-react';
+import { canAccess } from '../auth/permissions';
 
 export default function AttendancePage() {
-  const { user } = useAuth();
-  const isHRorAdmin = user?.role === 'HR' || user?.role === 'ADMIN';
+  const { user, employeeCode, employeeRecordId } = useAuth();
+  const canCalculateAttendance = canAccess(user?.role, 'attendanceCalculate');
+  const canViewAttendanceSummary = canAccess(user?.role, 'attendanceSummary');
 
   // Personal attendance state
   const [personalYear, setPersonalYear] = useState(new Date().getFullYear());
   const [personalMonth, setPersonalMonth] = useState(new Date().getMonth() + 1);
-  const personalAttendance = useAttendance(user?.employeeId, personalYear, personalMonth);
-  const personalExcelSummary = useEmployeeExcelSummary(user?.employeeId, personalYear, personalMonth);
+  const personalAttendance = useAttendance(employeeRecordId, personalYear, personalMonth);
+  const personalExcelSummary = useEmployeeExcelSummary(employeeCode, personalYear, personalMonth);
 
   // HR/Admin Excel attendance state
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -36,7 +37,7 @@ export default function AttendancePage() {
   const [file, setFile] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const excelAttendance = useExcelAttendance(selectedYear, selectedMonth);
+  const excelAttendance = useExcelAttendance(selectedYear, selectedMonth, canViewAttendanceSummary);
 
   useEffect(() => {
     document.title = 'Chấm công | HRM System';
@@ -148,13 +149,13 @@ export default function AttendancePage() {
         description="Theo dõi lịch sử check-in/out hằng ngày và quản lý bảng công tổng hợp hàng tháng."
       />
 
-      <Tabs defaultTab={isHRorAdmin ? 'system' : 'personal'}>
+      <Tabs defaultTab={canViewAttendanceSummary ? 'system' : 'personal'}>
         <TabList>
-          {isHRorAdmin && (
+          {canViewAttendanceSummary && (
             <Tab id="system">
               <span className="flex items-center gap-2">
                 <FileSpreadsheet className="h-4 w-4" />
-                Bảng công hệ thống (HR/Admin)
+                Bảng công hệ thống
               </span>
             </Tab>
           )}
@@ -167,7 +168,7 @@ export default function AttendancePage() {
         </TabList>
 
         {/* ==================== TAB 1: BẢNG CÔNG HỆ THỐNG (Dành riêng cho HR/Admin) ==================== */}
-        {isHRorAdmin && (
+        {canViewAttendanceSummary && (
           <TabPanel id="system">
             <div className="space-y-6">
               {/* Cấu hình thời gian & Upload File */}
@@ -205,60 +206,62 @@ export default function AttendancePage() {
                 </Card>
 
                 {/* Upload File chấm công */}
-                <Card className="md:col-span-2">
-                  <CardBody className="space-y-4">
-                    <h3 className="text-base font-semibold text-[#1b1b22] flex items-center gap-2">
-                      <Upload className="h-4 w-4 text-[#1f108e]" />
-                      Upload file Excel chấm công
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-4">
-                      {/* Custom File Button */}
-                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#c8c4d5] bg-white px-4 h-10 text-sm font-semibold text-[#1b1b22] hover:bg-[#f6f2fc] transition-colors">
-                        <Upload className="h-4 w-4 text-[#464553]" />
-                        {file ? 'Chọn file khác' : 'Chọn file Excel (.xlsx)'}
-                        <input
-                          type="file"
-                          accept=".xlsx"
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
-                      </label>
+                {canCalculateAttendance && (
+                  <Card className="md:col-span-2">
+                    <CardBody className="space-y-4">
+                      <h3 className="text-base font-semibold text-[#1b1b22] flex items-center gap-2">
+                        <Upload className="h-4 w-4 text-[#1f108e]" />
+                        Upload file Excel chấm công
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-4">
+                        {/* Custom File Button */}
+                        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#c8c4d5] bg-white px-4 h-10 text-sm font-semibold text-[#1b1b22] hover:bg-[#f6f2fc] transition-colors">
+                          <Upload className="h-4 w-4 text-[#464553]" />
+                          {file ? 'Chọn file khác' : 'Chọn file Excel (.xlsx)'}
+                          <input
+                            type="file"
+                            accept=".xlsx"
+                            onChange={handleFileChange}
+                            className="hidden"
+                          />
+                        </label>
 
-                      {file && (
-                        <div className="flex items-center gap-2 rounded-lg bg-[#f0ecf6] px-3 h-10 text-sm font-semibold text-[#58566a]">
-                          <FileSpreadsheet className="h-4 w-4 text-[#1f108e]" />
-                          <span className="max-w-[200px] truncate" title={file.name}>
-                            {file.name}
-                          </span>
+                        {file && (
+                          <div className="flex items-center gap-2 rounded-lg bg-[#f0ecf6] px-3 h-10 text-sm font-semibold text-[#58566a]">
+                            <FileSpreadsheet className="h-4 w-4 text-[#1f108e]" />
+                            <span className="max-w-[200px] truncate" title={file.name}>
+                              {file.name}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <Button
+                            disabled={!file}
+                            loading={excelAttendance.calculate.isPending}
+                            onClick={handleCalculate}
+                            className="h-10"
+                          >
+                            Tính công & Lưu
+                          </Button>
+                          <Button
+                            disabled={!file}
+                            variant="outline"
+                            loading={excelAttendance.calculateExport.isPending}
+                            onClick={handleCalculateExport}
+                            className="h-10"
+                            icon={<FileDown className="h-4 w-4" />}
+                          >
+                            Tính & Xuất file
+                          </Button>
                         </div>
-                      )}
-
-                      <div className="flex gap-2">
-                        <Button
-                          disabled={!file}
-                          loading={excelAttendance.calculate.isPending}
-                          onClick={handleCalculate}
-                          className="h-10"
-                        >
-                          Tính công & Lưu
-                        </Button>
-                        <Button
-                          disabled={!file}
-                          variant="outline"
-                          loading={excelAttendance.calculateExport.isPending}
-                          onClick={handleCalculateExport}
-                          className="h-10"
-                          icon={<FileDown className="h-4 w-4" />}
-                        >
-                          Tính & Xuất file
-                        </Button>
                       </div>
-                    </div>
-                    <p className="text-xs text-[#8a8898]">
-                      Lưu ý: Tải file Excel gốc có chứa cột 'Mã nhân viên', 'Tên nhân viên', 'Phòng ban' và các cặp cột 'Vào' / 'Ra' của các ngày để hệ thống tự động tính điểm công.
-                    </p>
-                  </CardBody>
-                </Card>
+                      <p className="text-xs text-[#8a8898]">
+                        Lưu ý: Tải file Excel gốc có chứa cột 'Mã nhân viên', 'Tên nhân viên', 'Phòng ban' và các cặp cột 'Vào' / 'Ra' của các ngày để hệ thống tự động tính điểm công.
+                      </p>
+                    </CardBody>
+                  </Card>
+                )}
               </div>
 
               {/* Bảng công tổng hợp */}
@@ -313,7 +316,9 @@ export default function AttendancePage() {
                           {!excelAttendance.summary.isLoading && filteredSummary.length === 0 && (
                             <tr>
                               <td colSpan={3 + dayKeys.length} className="py-8 text-center text-[#8a8898]">
-                                Không tìm thấy dữ liệu chấm công. Vui lòng upload file Excel của tháng để tính công.
+                                {canCalculateAttendance
+                                  ? 'Không tìm thấy dữ liệu chấm công. Vui lòng upload file Excel của tháng để tính công.'
+                                  : 'Không tìm thấy dữ liệu chấm công cho kỳ đã chọn.'}
                               </td>
                             </tr>
                           )}
@@ -392,21 +397,26 @@ export default function AttendancePage() {
         <TabPanel id="personal">
           <div className="space-y-6">
             {/* Panel Check-in/out hằng ngày */}
-            {user?.employeeId ? (
-              <AttendancePanel employeeId={user.employeeId} />
+            {employeeRecordId || employeeCode ? (
+              <AttendancePanel
+                attendanceEmployeeId={employeeRecordId}
+                summaryEmployeeId={employeeCode}
+                year={personalYear}
+                month={personalMonth}
+              />
             ) : (
               <Card>
                 <CardBody className="flex items-center gap-3 text-amber-600 bg-amber-50 rounded-lg p-4">
                   <AlertCircle className="h-5 w-5 flex-shrink-0" />
                   <p className="text-sm font-semibold">
-                    Tài khoản của bạn chưa được liên kết với hồ sơ nhân sự (employeeId). Vui lòng liên hệ bộ phận HR để cấu hình.
+                    Tài khoản của bạn chưa có đủ mã nhân viên trong token. Vui lòng đăng nhập lại hoặc liên hệ HR.
                   </p>
                 </CardBody>
               </Card>
             )}
 
             {/* Bảng công tổng hợp cá nhân (Tính từ Excel) */}
-            {user?.employeeId && (
+            {employeeCode && (
               <Card>
                 <CardHeader
                   title={`Bảng điểm công tổng hợp cá nhân — Tháng ${personalMonth}/${personalYear}`}
@@ -521,7 +531,7 @@ export default function AttendancePage() {
             )}
 
             {/* Bảng nhật ký log tháng này */}
-            {user?.employeeId && (
+            {employeeRecordId && (
               <Card>
                 <CardHeader
                   title="Nhật ký chấm công cá nhân"

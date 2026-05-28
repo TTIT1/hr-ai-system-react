@@ -3,8 +3,10 @@ import { Button } from '../common/Button';
 import { SelectField, TextAreaField, TextField } from '../common/FormField';
 import type { Department } from '../../types/employee.type';
 import type { CreateJobRequest } from '../../types/recruitment.type';
+import { useTranslation } from '../../context/LanguageContext';
 
 export function JobForm({ departments, onSubmit, loading }: { departments: Department[]; onSubmit: (payload: CreateJobRequest) => void; loading?: boolean }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ title: '', description: '', requirements: '', skills: '', salaryRange: '', headcount: '1', deadline: '', departmentId: '' });
   return (
     <form
@@ -24,18 +26,18 @@ export function JobForm({ departments, onSubmit, loading }: { departments: Depar
         });
       }}
     >
-      <TextField label="Title" value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} />
-      <SelectField label="Department" value={form.departmentId} onChange={(event) => setForm((prev) => ({ ...prev, departmentId: event.target.value }))}>
-        <option value="">Select department</option>
+      <TextField label={t('recruitment.jobTitle')} value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} />
+      <SelectField label={t('recruitment.department')} value={form.departmentId} onChange={(event) => setForm((prev) => ({ ...prev, departmentId: event.target.value }))}>
+        <option value="">{t('recruitment.selectDepartment')}</option>
         {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
       </SelectField>
-      <div className="md:col-span-2"><TextAreaField label="Description" value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
-      <TextAreaField label="Requirements" value={form.requirements} onChange={(event) => setForm((prev) => ({ ...prev, requirements: event.target.value }))} />
-      <TextField label="Skills, comma separated" value={form.skills} onChange={(event) => setForm((prev) => ({ ...prev, skills: event.target.value }))} />
-      <TextField label="Salary range" value={form.salaryRange} onChange={(event) => setForm((prev) => ({ ...prev, salaryRange: event.target.value }))} />
-      <TextField label="Headcount" type="number" value={form.headcount} onChange={(event) => setForm((prev) => ({ ...prev, headcount: event.target.value }))} />
-      <TextField label="Deadline" type="date" value={form.deadline} onChange={(event) => setForm((prev) => ({ ...prev, deadline: event.target.value }))} />
-      <div className="md:col-span-2"><Button type="submit" loading={loading}>Create job</Button></div>
+      <div className="md:col-span-2"><TextAreaField label={t('recruitment.description')} value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
+      <TextAreaField label={t('recruitment.requirements')} value={form.requirements} onChange={(event) => setForm((prev) => ({ ...prev, requirements: event.target.value }))} />
+      <TextField label={t('recruitment.skills')} value={form.skills} onChange={(event) => setForm((prev) => ({ ...prev, skills: event.target.value }))} />
+      <TextField label={t('recruitment.salaryRange')} value={form.salaryRange} onChange={(event) => setForm((prev) => ({ ...prev, salaryRange: event.target.value }))} />
+      <TextField label={t('recruitment.headcount')} type="number" value={form.headcount} onChange={(event) => setForm((prev) => ({ ...prev, headcount: event.target.value }))} />
+      <TextField label={t('recruitment.deadline')} type="date" value={form.deadline} onChange={(event) => setForm((prev) => ({ ...prev, deadline: event.target.value }))} />
+      <div className="md:col-span-2"><Button type="submit" loading={loading}>{t('recruitment.createJob')}</Button></div>
     </form>
   );
 }

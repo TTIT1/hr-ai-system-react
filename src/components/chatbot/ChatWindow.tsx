@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../common/Button';
 import { useChatbot, useChatbotActions } from '../../hooks/useChatbot';
 import { useTranslation } from '../../context/LanguageContext';
+import { useAuth } from '../../hooks/useAuth';
+import { canAccess } from '../../auth/permissions';
 
 function MessageBubble({
   role,
@@ -71,11 +73,13 @@ function TypingIndicator() {
 
 export function ChatWindow() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [localReplies, setLocalReplies] = useState<Array<{ role: string; content: string }>>([]);
   const { sessions, history } = useChatbot(sessionId);
   const actions = useChatbotActions();
+  const canUploadDocument = canAccess(user?.role, 'chatbotDocumentUpload');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -234,16 +238,18 @@ export function ChatWindow() {
             onSubmit={(event) => { event.preventDefault(); send(); }}
           >
             {/* File upload */}
-            <label className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#c8c4d5] bg-white text-[#58566a] transition hover:bg-[#fdfbff]">
-              <Paperclip className="h-4 w-4" />
-              <input
-                type="file"
-                className="hidden"
-                onChange={(event) =>
-                  event.target.files?.[0] && actions.uploadDoc.mutate(event.target.files[0])
-                }
-              />
-            </label>
+            {canUploadDocument && (
+              <label className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-[#c8c4d5] bg-white text-[#58566a] transition hover:bg-[#fdfbff]">
+                <Paperclip className="h-4 w-4" />
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(event) =>
+                    event.target.files?.[0] && actions.uploadDoc.mutate(event.target.files[0])
+                  }
+                />
+              </label>
+            )}
 
             <input
               ref={inputRef}

@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { authApi } from '../api/auth.api';
+import { getEmployeeCodeFromAuth, getEmployeeRecordIdFromAuth } from '../auth/employeeId';
 import { useAuthStore } from '../store/authStore';
 import type { ChangePasswordRequest, LoginRequest } from '../types/auth.type';
 import { getErrorMessage } from '../utils/errors';
@@ -9,7 +11,7 @@ import { getErrorMessage } from '../utils/errors';
 export function useAuth() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, setUser, setTokens, logout: clearAuth, isAuthenticated, refreshToken } = useAuthStore();
+  const { user, setUser, setTokens, logout: clearAuth, isAuthenticated, accessToken, refreshToken } = useAuthStore();
 
   const meQuery = useQuery({
     queryKey: ['auth', 'me'],
@@ -17,6 +19,12 @@ export function useAuth() {
     enabled: isAuthenticated,
     retry: false,
   });
+
+  useEffect(() => {
+    if (meQuery.data) {
+      setUser(meQuery.data);
+    }
+  }, [meQuery.data, setUser]);
 
   const loginMutation = useMutation({
     mutationFn: (payload: LoginRequest) => authApi.login(payload),
@@ -45,8 +53,15 @@ export function useAuth() {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
+  const currentUser = user || meQuery.data || null;
+  const employeeCode = getEmployeeCodeFromAuth(currentUser, accessToken);
+  const employeeRecordId = getEmployeeRecordIdFromAuth(currentUser, accessToken);
+
   return {
-    user: user || meQuery.data || null,
+    user: currentUser,
+    employeeId: employeeCode,
+    employeeCode,
+    employeeRecordId,
     isAuthenticated,
     meQuery,
     login: loginMutation,

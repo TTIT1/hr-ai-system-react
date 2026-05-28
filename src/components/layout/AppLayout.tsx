@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import {
   BarChart3,
   Bell,
+  Building2,
   CircleUserRound,
   Clock3,
   LayoutDashboard,
@@ -15,21 +16,33 @@ import {
   Calendar,
   CreditCard,
   Globe,
+  FileText,
+  Settings,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useAppContext } from '../../context/AppContext';
 import { useTranslation } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
+import { canAccess, type Permission } from '../../auth/permissions';
 
 const primaryLinks = [
   { to: '/', label: 'Dashboard', key: 'sidebar.dashboard', icon: LayoutDashboard, end: true },
-  { to: '/employees', label: 'Employee Directory', key: 'sidebar.employees', icon: Users },
-  { to: '/recruitment', label: 'Onboarding', key: 'sidebar.onboarding', icon: UserPlus },
-  { to: '/attendance', label: 'Attendance', key: 'sidebar.attendance', icon: Clock3 },
-  { to: '/leave', label: 'Leave Requests', key: 'sidebar.leave', icon: Calendar },
-  { to: '/salary', label: 'Payroll & Salary', key: 'sidebar.payroll', icon: CreditCard },
-  { to: '/performance', label: 'Reports', key: 'sidebar.reports', icon: BarChart3 },
-  { to: '/chatbot', label: 'ChatBox AI', key: 'sidebar.chatbot', icon: Bot },
+  { to: '/employees', label: 'Employee Directory', key: 'sidebar.employees', icon: Users, permission: 'employeeView' },
+  { to: '/departments', label: 'Departments', key: 'sidebar.departments', icon: Building2, permission: 'departmentView' },
+  { to: '/company-configs', label: 'Company Configs', key: 'sidebar.companyConfigs', icon: Settings, permission: 'companyConfigView' },
+  { to: '/projects', label: 'Projects', key: 'sidebar.projects', icon: FileText, permission: 'projectView' },
+  { to: '/recruitment', label: 'Onboarding', key: 'sidebar.onboarding', icon: UserPlus, permission: 'jobView' },
+  { to: '/attendance', label: 'Attendance', key: 'sidebar.attendance', icon: Clock3, permission: 'attendancePersonal' },
+  { to: '/attendance-explanations', label: 'Explanations', key: 'sidebar.explanations', icon: FileText, permission: 'attendanceExplanationMine' },
+  { to: '/leave', label: 'Leave Requests', key: 'sidebar.leave', icon: Calendar, permission: 'leavePersonal' },
+  { to: '/overtime', label: 'Overtime', key: 'sidebar.overtime', icon: Clock3, permission: 'overtimePersonal' },
+  { to: '/holidays', label: 'Holidays', key: 'sidebar.holidays', icon: Calendar, permission: 'holidayView' },
+  { to: '/notifications', label: 'Notifications', key: 'sidebar.notifications', icon: Bell, permission: 'notificationMine' },
+  { to: '/salary', label: 'Payroll & Salary', key: 'sidebar.payroll', icon: CreditCard, permission: 'payroll' },
+  { to: '/user-roles', label: 'User Roles', key: 'sidebar.userRoles', icon: ShieldCheck, permission: 'userRoleManage' },
+  { to: '/performance', label: 'Reports', key: 'sidebar.reports', icon: BarChart3, permission: 'kpiView' },
+  { to: '/chatbot', label: 'ChatBox AI', key: 'sidebar.chatbot', icon: Bot, permission: 'chatbot' },
 ];
 
 export function AppLayout() {
@@ -38,8 +51,10 @@ export function AppLayout() {
   const { t, language, setLanguage } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const displayName = user?.fullName || user?.email || 'Alex Rivera';
-  const role = user?.role || 'HR Manager';
+  const role = user?.role;
+  const roleLabel = role || 'No role';
   const collapsed = !state.sidebarOpen;
+  const visibleLinks = primaryLinks.filter((link) => !link.permission || canAccess(role, link.permission as Permission));
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#fcf8ff] dark:bg-[#0f0e17] text-[#1b1b22] dark:text-[#e8e4f0]">
@@ -68,14 +83,16 @@ export function AppLayout() {
 
         {/* Nav */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
-          {primaryLinks.map((link) => {
+          {visibleLinks.map((link) => {
             const Icon = link.icon;
+            const translatedLabel = t(link.key);
+            const label = translatedLabel === link.key ? link.label : translatedLabel;
             return (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.end}
-                title={collapsed ? t(link.key) : undefined}
+                title={collapsed ? label : undefined}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-150 ${
                     collapsed ? 'justify-center' : ''
@@ -87,7 +104,7 @@ export function AppLayout() {
                 }
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {!collapsed && <span className="truncate">{t(link.key)}</span>}
+                {!collapsed && <span className="truncate">{label}</span>}
               </NavLink>
             );
           })}
@@ -109,7 +126,7 @@ export function AppLayout() {
 
           {collapsed ? (
             <div
-              title={`${displayName} (${role})`}
+              title={`${displayName} (${roleLabel})`}
               className="flex justify-center py-1"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#e4e1eb] dark:bg-[#2e2a3d] text-xs font-bold text-[#464553] dark:text-[#c4b5fd]">
@@ -123,7 +140,7 @@ export function AppLayout() {
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-[#1b1b22] dark:text-[#e8e4f0]">{displayName}</p>
-                <p className="truncate text-xs text-[#464553] dark:text-[#8b87a0]">{role}</p>
+                <p className="truncate text-xs text-[#464553] dark:text-[#8b87a0]">{roleLabel}</p>
               </div>
             </div>
           )}
